@@ -23,9 +23,12 @@ const Home: NextComponentType = () => {
   const [charsets, setCharsets] = useState<Charset[]>([])
 
   const handleChangeInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = str.clean(e.target.value)
-    setInput(value)
+    setInput(e.target.value)
     setOutput('')
+  }
+
+  const handleBlurInput = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+    setInput(str.clean(e.target.value))
   }
 
   const updateCharset = (index: number, charset: Charset) => {
@@ -178,6 +181,7 @@ const Home: NextComponentType = () => {
             rows={5}
             name="input"
             value={input}
+            onBlur={handleBlurInput}
             onChange={handleChangeInput}
             className="w-full resize-none rounded border border-black/40 px-3 py-2"
           />
