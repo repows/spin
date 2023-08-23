@@ -6,7 +6,12 @@ import * as R from 'remeda'
 
 import { Charset } from '@/types/charset'
 import { ASCII_CHARSET, createEmptyCharset, DEFAULT_CHARSETS } from '@/constants/charset'
-import { DEFAULT_NUMBER_OF_LINES, SAMPLE_NUMBER_OF_LINES, JOIN_CHAR } from '@/constants/spinner'
+import {
+  JOIN_CHAR,
+  END_LINE_CHAR,
+  SAMPLE_NUMBER_OF_LINES,
+  DEFAULT_NUMBER_OF_LINES,
+} from '@/constants/spinner'
 
 import CharsetItem from '@/components/charset/CharsetItem'
 import { useEffect, useState } from 'react'
@@ -107,12 +112,12 @@ const Home: NextComponentType = () => {
 
   const handleSample = (e: React.MouseEvent<HTMLButtonElement>) => {
     const outputs = generateOutput(SAMPLE_NUMBER_OF_LINES)
-    setOutput(outputs.join('\n\n'))
+    setOutput(outputs.join(END_LINE_CHAR))
   }
 
   const handleGenerate = (e: React.MouseEvent<HTMLButtonElement>) => {
     const outputs = generateOutput(lines)
-    setOutput(outputs.join('\n\n'))
+    setOutput(outputs.join(END_LINE_CHAR))
   }
 
   const handleClear = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -122,7 +127,7 @@ const Home: NextComponentType = () => {
   const handleDownload = (e: React.MouseEvent<HTMLButtonElement>) => {
     let outputs = generateOutput(lines)
     if (outputs.length === 0) return
-    outputs = outputs.map((line) => `${line}\n\n`)
+    outputs = outputs.map((line) => line + END_LINE_CHAR)
     const file = new File(outputs, 'outputs.txt', { type: 'text/plain' })
     const link = document.createElement('a')
     const url = URL.createObjectURL(file)
