@@ -63,7 +63,11 @@ const Home: NextComponentType = () => {
 
   const handleAddCharset = (e: React.MouseEvent<HTMLButtonElement>) => {
     const charset = createEmptyCharset()
-    setCharsets((prev) => [...prev, charset])
+    setCharsets((prev) => {
+      const [wordCharsets, spaceCharsets] = R.partition(prev, (charset) => !charset.is_space)
+
+      return [...wordCharsets, charset, ...spaceCharsets]
+    })
   }
 
   const handleResetCharsets = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -78,7 +82,8 @@ const Home: NextComponentType = () => {
   const generateOutput = (n: number): string[] => {
     if (!input) return []
 
-    const enableCharsets = charsets.filter((charset) => charset.is_enabled)
+    const [wordCharsets, spaceCharsets] = R.partition(charsets, (charset) => !charset.is_space)
+    const enableCharsets = wordCharsets.filter((charset) => charset.is_enabled)
     const mappings = enableCharsets.map((charset) =>
       Object.fromEntries(R.zip(str.list(ASCII_CHARSET.text), str.list(charset.text))),
     )
@@ -107,7 +112,21 @@ const Home: NextComponentType = () => {
       outputs.push(out.trim())
     })
 
-    return outputs
+    return interpolateSpaceCharsets(outputs, spaceCharsets)
+  }
+
+  const interpolateSpaceCharsets = (outputs: string[], spaceCharsets: Charset[]): string[] => {
+    const selectedCharset = spaceCharsets
+      .filter((charset) => charset.is_space && charset.is_enabled)
+      .pop()
+    if (!selectedCharset) return outputs
+
+    const mapFn = (output: string): string => {
+      const chars = str.list(selectedCharset.text)
+      return output.replace(/\s/g, () => str.choice(chars))
+    }
+
+    return outputs.map((output) => mapFn(output))
   }
 
   const handleSample = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -166,7 +185,7 @@ const Home: NextComponentType = () => {
         <div className="flex items-center gap-x-4">
           <button
             onClick={handleAddCharset}
-            disabled={!charsets[charsets.length - 1]?.text}
+            disabled={!charsets.filter((charset) => !charset.is_space).pop()?.text}
             className="rounded border border-black/40 px-4 py-2 transition hover:bg-black/10 disabled:cursor-not-allowed"
           >
             Add Charset

@@ -22,6 +22,7 @@ const CharsetItem: NextComponentType<{}, {}, Props> = ({
   onRemove,
 }) => {
   const error = charset.text.length !== ASCII_CHARSET.text.length
+  const title = charset.is_space ? 'Space Charset' : 'Standard Charset'
 
   const handleToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (charset.is_ascii) return
@@ -55,7 +56,7 @@ const CharsetItem: NextComponentType<{}, {}, Props> = ({
   }
 
   return (
-    <div className={classnames(className, 'mb-4 flex items-center gap-x-4')}>
+    <div className={classnames(className, 'mb-4 flex items-center gap-x-4')} title={charset.title}>
       <input
         type="checkbox"
         onChange={handleToggle}
@@ -71,12 +72,13 @@ const CharsetItem: NextComponentType<{}, {}, Props> = ({
         className={classnames(
           'w-full cursor-pointer rounded border border-black/30 p-2 read-only:bg-black/7 focus:border-black/60 focus:outline-none',
           {
-            '!border-red-500 !bg-red-50': error && charset.is_enabled,
+            '!border-red-500 !bg-red-50': error && charset.is_enabled && !charset.is_space,
+            '!w-1/2': charset.is_space,
           },
         )}
       />
 
-      {!charset.is_default && (
+      {!charset.is_default && !charset.is_space && (
         <>
           <button
             type="button"
@@ -86,7 +88,6 @@ const CharsetItem: NextComponentType<{}, {}, Props> = ({
           >
             C
           </button>
-
           <button
             type="button"
             onClick={handleRemove}
@@ -97,15 +98,17 @@ const CharsetItem: NextComponentType<{}, {}, Props> = ({
           </button>
         </>
       )}
-      <input
-        type="number"
-        min={1}
-        step={1}
-        value={charset.amount}
-        onChange={handleChangeAmount}
-        title="The amount of times this charset will be repeated"
-        className="w-14 rounded border border-black/30 p-2 focus:border-black/60 focus:outline-none"
-      />
+      {!charset.is_space && (
+        <input
+          type="number"
+          min={1}
+          step={1}
+          value={charset.amount}
+          onChange={handleChangeAmount}
+          title="The amount of times this charset will be repeated"
+          className="w-14 rounded border border-black/30 p-2 focus:border-black/60 focus:outline-none"
+        />
+      )}
     </div>
   )
 }
