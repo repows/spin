@@ -71,7 +71,7 @@ export const DEFAULT_CHARSETS: Charset[] = [
   {
     id: '473e9e99-5927-4061-a676-542748854f67',
     text: '-/:;()₫&@".,?!\'[]{}#%^*+=_\\|~<>$¥€•',
-    is_enabled: true,
+    is_enabled: false,
     is_default: false,
     is_space: true,
     amount: 1,
