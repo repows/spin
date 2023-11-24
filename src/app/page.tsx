@@ -23,6 +23,7 @@ const Home: NextComponentType = () => {
   const [ready, setReady] = useState<boolean>(false)
   const [input, setInput] = useState<string>('')
   const [output, setOutput] = useState<string>('')
+  const [total, setTotal] = useState<number>(0)
   const [lines, setLines] = useState<number>(DEFAULT_NUMBER_OF_LINES)
 
   const [charsets, setCharsets] = useState<Charset[]>([])
@@ -30,6 +31,7 @@ const Home: NextComponentType = () => {
   const handleChangeInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value)
     setOutput('')
+    setTotal(0)
   }
 
   const handleBlurInput = (e: React.FocusEvent<HTMLTextAreaElement>) => {
@@ -92,10 +94,15 @@ const Home: NextComponentType = () => {
       enableCharsets.map((charset, idx) => R.range(0, charset.amount).fill(idx)),
     )
 
+    let attempts = 0
     const listIndexes = new Set<string>()
     while (listIndexes.size < n) {
+      if (attempts >= 4000) break
       const indexes = words.map(() => str.choice(seeds)).join(JOIN_CHAR)
-      if (listIndexes.has(indexes)) continue
+      if (listIndexes.has(indexes)) {
+        attempts += 1
+        continue
+      }
       listIndexes.add(indexes)
     }
 
@@ -132,15 +139,18 @@ const Home: NextComponentType = () => {
   const handleSample = (e: React.MouseEvent<HTMLButtonElement>) => {
     const outputs = generateOutput(SAMPLE_NUMBER_OF_LINES)
     setOutput(outputs.join(END_LINE_CHAR))
+    setTotal(outputs.length)
   }
 
   const handleGenerate = (e: React.MouseEvent<HTMLButtonElement>) => {
     const outputs = generateOutput(lines)
     setOutput(outputs.join(END_LINE_CHAR))
+    setTotal(outputs.length)
   }
 
   const handleClear = (e: React.MouseEvent<HTMLButtonElement>) => {
     setOutput('')
+    setTotal(0)
   }
 
   const handleDownload = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -249,7 +259,7 @@ const Home: NextComponentType = () => {
           </button>
         </div>
         <div data-qa="output">
-          <div className="mb-1">Output</div>
+          <div className="mb-1">Output {total > 0 && ` - Total: ${total}`}</div>
           <textarea
             readOnly
             rows={25}
