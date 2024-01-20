@@ -75,6 +75,7 @@ export const DEFAULT_CHARSETS: Charset[] = [
     is_default: false,
     is_space: true,
     amount: 1,
+    title: 'Ký tự khoảng trống',
   },
 ]
 

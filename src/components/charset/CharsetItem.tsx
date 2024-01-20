@@ -56,7 +56,7 @@ const CharsetItem: NextComponentType<{}, {}, Props> = ({
   }
 
   return (
-    <div className={classnames(className, 'mb-4 flex items-center gap-x-4')} title={charset.title}>
+    <div className={classnames(className, 'mb-4 flex items-center gap-x-4')}>
       <input
         type="checkbox"
         onChange={handleToggle}
@@ -66,6 +66,7 @@ const CharsetItem: NextComponentType<{}, {}, Props> = ({
       <input
         type="text"
         value={charset.text}
+        title={charset.title}
         onChange={handleChangeText}
         onClick={handleSelectCharset}
         readOnly={charset.is_default}

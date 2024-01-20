@@ -5,12 +5,15 @@ import * as str from '@/utils/str'
 import * as R from 'remeda'
 
 import { Charset } from '@/types/charset'
-import { ASCII_CHARSET, createEmptyCharset, DEFAULT_CHARSETS } from '@/constants/charset'
+import { ASCII_CHARSET, createEmptyCharset } from '@/constants/charset'
 import {
+  MAX_ATTEMPTS,
   JOIN_CHAR,
   END_LINE_CHAR,
   SAMPLE_NUMBER_OF_LINES,
   DEFAULT_NUMBER_OF_LINES,
+  DEFAULT_NUMBER_OF_RANDOM_CHARS,
+  DEFAULT_NUMBER_OF_RANDON_LINES,
 } from '@/constants/spinner'
 
 import CharsetItem from '@/components/charset/CharsetItem'
@@ -25,6 +28,8 @@ const Home: NextComponentType = () => {
   const [output, setOutput] = useState<string>('')
   const [total, setTotal] = useState<number>(0)
   const [lines, setLines] = useState<number>(DEFAULT_NUMBER_OF_LINES)
+  const [randomChars, setRandomChars] = useState<number>(DEFAULT_NUMBER_OF_RANDOM_CHARS)
+  const [randomLines, setRandomLines] = useState<number>(DEFAULT_NUMBER_OF_RANDON_LINES)
 
   const [charsets, setCharsets] = useState<Charset[]>([])
 
@@ -97,7 +102,7 @@ const Home: NextComponentType = () => {
     let attempts = 0
     const listIndexes = new Set<string>()
     while (listIndexes.size < n) {
-      if (attempts >= 4000) break
+      if (attempts >= MAX_ATTEMPTS) break
       const indexes = words.map(() => str.choice(seeds)).join(JOIN_CHAR)
       if (listIndexes.has(indexes)) {
         attempts += 1
@@ -153,6 +158,10 @@ const Home: NextComponentType = () => {
     setTotal(0)
   }
 
+  const handleCopy = (e: React.MouseEvent<HTMLButtonElement>) => {
+    navigator.clipboard.writeText(output)
+  }
+
   const handleDownload = (e: React.MouseEvent<HTMLButtonElement>) => {
     let outputs = generateOutput(lines)
     if (outputs.length === 0) return
@@ -167,6 +176,39 @@ const Home: NextComponentType = () => {
     link.click()
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
+  }
+
+  const handleChangeRandomChars = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.max(0, e.target.valueAsNumber)
+    setRandomChars(value)
+  }
+
+  const handleChangeRandomLines = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Math.max(0, e.target.valueAsNumber)
+    setRandomLines(value)
+  }
+
+  const generateRandoms = (nchars: number, nlines: number): string[] => {
+    let attempts = 0
+    const listRandoms = new Set<string>()
+
+    while (listRandoms.size < nlines) {
+      if (attempts >= MAX_ATTEMPTS) break
+      const random = R.randomString(nchars)
+      if (listRandoms.has(random)) {
+        attempts += 1
+        continue
+      }
+      listRandoms.add(random)
+    }
+
+    return Array.from(listRandoms)
+  }
+
+  const handleRandom = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const outputs = generateRandoms(randomChars, randomLines)
+    setOutput(outputs.join(END_LINE_CHAR))
+    setTotal(outputs.length)
   }
 
   useEffect(() => {
@@ -209,10 +251,11 @@ const Home: NextComponentType = () => {
         </div>
       </div>
       <div data-qa="right" className="w-[60%] flex-grow">
+        {/* Spin */}
         <div data-qa="input" className="mb-2">
-          <div className="mb-1">Input</div>
+          <div className="mb-1">Spin</div>
           <textarea
-            rows={5}
+            rows={3}
             name="input"
             value={input}
             onBlur={handleBlurInput}
@@ -224,6 +267,7 @@ const Home: NextComponentType = () => {
           <button
             type="button"
             className="rounded border border-black/40 px-4 py-2 transition hover:bg-black/10"
+            title="Tạo spin (10 dòng)"
             onClick={handleSample}
           >
             Sample ({SAMPLE_NUMBER_OF_LINES})
@@ -234,32 +278,58 @@ const Home: NextComponentType = () => {
             step={50}
             value={lines}
             onChange={handleChangeLines}
+            title="Số lượng dòng spin"
             className="w-20 rounded border border-black/40 p-2"
           />
           <button
             type="button"
+            title="Tạo spin (n dòng)"
             className="rounded border border-black/40 px-4 py-2 transition hover:bg-black/10"
             onClick={handleGenerate}
           >
             Generate
           </button>
-          <button
-            type="button"
-            className="rounded border border-black/40 px-4 py-2 transition hover:bg-black/10"
-            onClick={handleClear}
-          >
-            Clear
-          </button>
-          <button
-            type="button"
-            onClick={handleDownload}
-            className="rounded border border-black/40 bg-black/70 px-4 py-2 text-white transition hover:bg-black/60"
-          >
-            Download
-          </button>
         </div>
-        <div data-qa="output">
-          <div className="mb-1">Output {total > 0 && ` - Total: ${total}`}</div>
+
+        {/* Random */}
+        <div data-qa="tools">
+          <div className="mb-2">Random</div>
+          <div data-qa="tool-item" className="mb-2 flex items-center gap-x-4">
+            <input
+              type="number"
+              min={1}
+              step={1}
+              value={randomChars}
+              onChange={handleChangeRandomChars}
+              title="Số ký tự trong chuỗi ngẫu nhiên"
+              className="w-20 rounded border border-black/40 p-2"
+            />
+            <input
+              type="number"
+              min={1}
+              step={50}
+              value={randomLines}
+              onChange={handleChangeRandomLines}
+              title="Sô lượng chuỗi ngẫu nhiên"
+              className="w-20 rounded border border-black/40 p-2"
+            />
+            <button
+              type="button"
+              onClick={handleRandom}
+              title="Tạo random (n dòng)"
+              className="rounded border border-black/40 px-4 py-2 transition hover:bg-black/10"
+            >
+              Random
+            </button>
+          </div>
+        </div>
+
+        {/* Output */}
+        <div data-qa="output" className="mb-2">
+          <div className="mb-1">
+            <span>Output</span>
+            <span>{total > 0 && ` - Total: ${total.toLocaleString()}`}</span>
+          </div>
           <textarea
             readOnly
             rows={25}
@@ -267,6 +337,34 @@ const Home: NextComponentType = () => {
             value={output}
             className="w-full rounded border border-black/40 px-3 py-2"
           />
+        </div>
+
+        {/* Actions */}
+        <div data-qa="actions" className="flex items-center gap-x-3">
+          <button
+            type="button"
+            className="rounded border border-black/40 px-4 py-2 transition hover:bg-black/10"
+            title="Xóa nội dung output"
+            onClick={handleClear}
+          >
+            Clear
+          </button>
+          <button
+            type="button"
+            className="rounded border border-black/40 px-4 py-2 transition hover:bg-black/10"
+            title="Sao chép nội dung output"
+            onClick={handleCopy}
+          >
+            Copy
+          </button>
+          <button
+            type="button"
+            onClick={handleDownload}
+            title="Tải nội dung output"
+            className="rounded border border-black/40 bg-black/70 px-4 py-2 text-white transition hover:bg-black/60"
+          >
+            Download
+          </button>
         </div>
       </div>
     </div>
